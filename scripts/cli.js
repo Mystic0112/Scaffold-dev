@@ -10,11 +10,15 @@
 //   node cli.js trilha
 //   node cli.js diario [--limite 20]
 //   node cli.js export-dir
+//   node cli.js painel [--saida <arquivo>] [--abrir] [--servir] [--porta 4173]
 
 const fs = require('fs');
+const http = require('http');
 const path = require('path');
-const { execFileSync } = require('child_process');
+const { execFileSync, spawnSync } = require('child_process');
 const store = require('./lib/store');
+const { calcularMetricas } = require('./lib/metricas');
+const { gerarHtml } = require('./lib/painel-html');
 
 const TIPOS = ['previsao', 'revisao', 'explicacao'];
 const NIVEIS = ['estagiario', 'junior', 'pleno'];
@@ -233,7 +237,134 @@ const comandos = {
   'export-dir'() {
     return store.exportDir();
   },
+
+  painel({ flags }) {
+    if (flags.servir) {
+      const porta = flags.porta !== undefined && flags.porta !== true ? Number(flags.porta) : 4173;
+      if (!Number.isInteger(porta) || porta < 0 || porta > 65535) {
+        throw new Error('--porta deve ser um número inteiro entre 0 e 65535');
+      }
+      const promessa = iniciarServidorPainel({ porta }).then((srv) => {
+        if (flags.abrir) abrirNoNavegador(srv.url);
+        return srv;
+      });
+      return { assincrono: true, promessa, saida: `http://127.0.0.1:${porta}` };
+    }
+
+    const { perfil, metricas } = obterMetricasAtuais();
+    const html = gerarHtml(metricas, { geradoEm: new Date(), modo: 'estatico', perfil });
+    const destino =
+      flags.saida && flags.saida !== true
+        ? path.resolve(String(flags.saida))
+        : path.join(store.exportDir(), 'painel.html');
+    fs.mkdirSync(path.dirname(destino), { recursive: true });
+    fs.writeFileSync(destino, html, 'utf8');
+    if (flags.abrir) abrirNoNavegador(destino);
+    return destino;
+  },
 };
+
+const HEADERS_PAINEL = {
+  'Cache-Control': 'no-store',
+  'Content-Security-Policy': "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:",
+};
+
+function obterMetricasAtuais() {
+  const perfil = store.lerPerfil();
+  const diario = store.lerLinhas('diario.jsonl');
+  const trilha = carregarTrilha(perfil.idioma);
+  const metricas = calcularMetricas({ perfil, diario, trilha });
+  return { perfil, metricas };
+}
+
+function abrirNoNavegador(alvo) {
+  try {
+    if (process.platform === 'win32') {
+      spawnSync('cmd', ['/c', 'start', '', alvo], { stdio: 'ignore', windowsHide: true });
+    } else if (process.platform === 'darwin') {
+      spawnSync('open', [alvo], { stdio: 'ignore' });
+    } else {
+      spawnSync('xdg-open', [alvo], { stdio: 'ignore' });
+    }
+  } catch {
+    // falha silenciosa caso nenhum navegador esteja disponível
+  }
+}
+
+function tratarRequisicaoPainel(req, res) {
+  let rota = '/';
+  try {
+    rota = new URL(req.url || '/', 'http://127.0.0.1').pathname;
+  } catch {
+    rota = '/';
+  }
+
+  if (req.method === 'GET' && rota === '/') {
+    const { perfil, metricas } = obterMetricasAtuais();
+    const html = gerarHtml(metricas, { geradoEm: new Date(), modo: 'servidor', perfil });
+    res.writeHead(200, {
+      ...HEADERS_PAINEL,
+      'Content-Type': 'text/html; charset=utf-8',
+    });
+    res.end(html);
+    return;
+  }
+
+  if (req.method === 'GET' && rota === '/api/metricas') {
+    const { metricas } = obterMetricasAtuais();
+    res.writeHead(200, {
+      ...HEADERS_PAINEL,
+      'Content-Type': 'application/json; charset=utf-8',
+    });
+    res.end(JSON.stringify(metricas));
+    return;
+  }
+
+  res.writeHead(404, {
+    ...HEADERS_PAINEL,
+    'Content-Type': 'text/plain; charset=utf-8',
+  });
+  res.end('Não encontrado');
+}
+
+function iniciarServidorPainel({ porta = 4173, maxTentativas = 10 } = {}) {
+  const portaInicial = Number.isFinite(Number(porta)) && Number(porta) >= 0 ? Number(porta) : 4173;
+  const servidor = http.createServer(tratarRequisicaoPainel);
+
+  return new Promise((resolve, reject) => {
+    let tentativa = 0;
+
+    function tentar(portaAlvo) {
+      function aoErro(err) {
+        servidor.removeListener('listening', aoEscutar);
+        if (err && err.code === 'EADDRINUSE' && portaInicial > 0 && tentativa < maxTentativas) {
+          tentativa += 1;
+          tentar(portaInicial + tentativa);
+        } else {
+          reject(err);
+        }
+      }
+
+      function aoEscutar() {
+        servidor.removeListener('error', aoErro);
+        const endereco = servidor.address();
+        const portaReal = endereco && typeof endereco === 'object' ? endereco.port : portaAlvo;
+        const url = `http://127.0.0.1:${portaReal}`;
+        servidor.porta = portaReal;
+        servidor.url = url;
+        servidor.fechar = () => new Promise((r) => servidor.close(r));
+        Object.defineProperty(servidor, 'servidor', { value: servidor, enumerable: false });
+        resolve(servidor);
+      }
+
+      servidor.once('error', aoErro);
+      servidor.once('listening', aoEscutar);
+      servidor.listen(portaAlvo, '127.0.0.1');
+    }
+
+    tentar(portaInicial);
+  });
+}
 
 function main(argv) {
   const { pos, flags } = args(argv);
@@ -243,16 +374,34 @@ function main(argv) {
     return { codigo: 1, saida: `comando desconhecido: ${nome || '(vazio)'}\nuse: ${Object.keys(comandos).join(' | ')}` };
   }
   try {
-    return { codigo: 0, saida: cmd({ pos, flags }) };
+    const res = cmd({ pos, flags });
+    if (res && typeof res === 'object' && res.assincrono) {
+      return { codigo: 0, saida: res.saida, promessa: res.promessa };
+    }
+    return { codigo: 0, saida: res };
   } catch (e) {
     return { codigo: 1, saida: `erro: ${e.message}` };
   }
 }
 
 if (require.main === module) {
-  const { codigo, saida } = main(process.argv.slice(2));
-  (codigo ? process.stderr : process.stdout).write(saida + '\n');
-  process.exit(codigo);
+  const res = main(process.argv.slice(2));
+  if (res.promessa) {
+    res.promessa
+      .then((srv) => {
+        process.stdout.write(`${srv.url}\n`);
+        const encerrar = () => srv.close(() => process.exit(0));
+        process.once('SIGINT', encerrar);
+        process.once('SIGTERM', encerrar);
+      })
+      .catch((e) => {
+        process.stderr.write(`erro: ${e.message}\n`);
+        process.exit(1);
+      });
+  } else {
+    (res.codigo ? process.stderr : process.stdout).write(res.saida + '\n');
+    process.exit(res.codigo);
+  }
 }
 
-module.exports = { main };
+module.exports = { main, iniciarServidorPainel };

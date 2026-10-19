@@ -19,6 +19,7 @@ O Scaffold Dev transforma o tempo em que o agente trabalha em **prática ativa**
 | **explicar** `[foco]` | Explicação adaptada ao seu nível, seguida de um desafio Feynman: você explica de volta e recebe feedback. |
 | **estudo** `[tema]` | Gera um **pacote de estudo em Markdown** para importar no **NotebookLM** ou no **SurfSense**: resumo em áudio, flashcards, quiz e mapa mental. |
 | **progresso** | Radar da trilha júnior → pleno, diário de aprendizado e o próximo passo sugerido. |
+| **painel** | Gera e abre o painel visual de métricas em HTML (estático ou ao vivo no navegador). |
 | **config** | Define nível (`estagiario`, `junior`, `pleno`), stack e lembretes. |
 
 No Claude Code os skills se chamam `/scaffold-dev:prever`, `/scaffold-dev:revisar` etc. Nas outras ferramentas, `scaffold-dev-prever`, `scaffold-dev-revisar` etc. (veja a tabela de instalação para a sintaxe de cada uma).
@@ -98,9 +99,31 @@ O skill **estudo** gera um arquivo `.md` em `~/scaffold-dev-estudos/` com contex
 | `SCAFFOLD_DEV_HOME` | `~/.scaffold-dev` | Onde ficam perfil e logs |
 | `SCAFFOLD_DEV_EXPORT_DIR` | `~/scaffold-dev-estudos` | Onde os pacotes de estudo são salvos |
 
+## Painel de métricas
+
+Além do resumo em texto (`progresso`), você pode abrir um painel visual em HTML autocontido (100% offline, sem dependências externas, com tema claro e escuro automático):
+
+```bash
+# Gera o arquivo ~/scaffold-dev-estudos/painel.html e abre no navegador
+node scripts/cli.js painel --abrir
+
+# Ou sobe um servidor local (127.0.0.1:4173) que atualiza a tela a cada 10s
+node scripts/cli.js painel --servir
+```
+
+| Seção | O que mostra |
+|---|---|
+| **Indicadores (KPIs)** | Total de atividades, média geral, sequência atual de dias seguidos e atividades nos últimos 7 dias. |
+| **Radar da trilha** | Gráfico radar SVG nas 11 áreas (0–10), destacando áreas ainda sem dados como eixos tracejados, acompanhado de tabela acessível. |
+| **Evolução semanal** | Volume de atividades em barras e média de notas em linha nas últimas 12 semanas ISO. |
+| **Calendário de atividade** | Heatmap dos últimos 6 meses (182 dias) no fuso local. |
+| **Por tipo e conceitos** | Distribuição entre `previsao`, `revisao` e `explicacao`, mais os 15 conceitos mais praticados. |
+| **Lacunas e próximo passo** | Sugestão objetiva do que praticar a seguir e lista de áreas sem prática ou com média abaixo de 6. |
+| **Diário** | Tabela das últimas 50 atividades com filtros instantâneos por tipo, área, projeto e busca no resumo. |
+
 ## Roadmap
 
-- [ ] Painel visual de métricas de estudo — plano detalhado em [`docs/plano-painel.md`](docs/plano-painel.md)
+- [x] Painel visual de métricas de estudo — plano detalhado em [`docs/plano-painel.md`](docs/plano-painel.md)
 - [ ] Revisão espaçada: flashcards que voltam no dia certo
 - [ ] Integração direta com a API do SurfSense / NotebookLM Enterprise
 - [ ] Trilhas por stack (Laravel, Node/TS, Python…)
