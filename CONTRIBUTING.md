@@ -5,16 +5,28 @@ Este projeto foi feito para juniores — inclusive para o seu primeiro PR open s
 ## Estrutura
 
 ```
-.claude-plugin/   manifesto do plugin e do marketplace
-skills/<nome>/    comandos /scaffold-dev:<nome> (prompts em Markdown)
-hooks/hooks.json  hooks do Claude Code (PostToolUse e Stop)
+.claude-plugin/   manifesto do plugin e do marketplace (Claude Code)
+skills/<nome>/    skills (prompts em Markdown) — fonte única para todos os harnesses
+hooks/hooks.json  hooks do plugin do Claude Code (PostToolUse e Stop)
 scripts/          lógica em Node.js, sem dependências
-  cli.js          perfil, registros, trilha, diário
-  hooks/          scripts chamados pelos hooks
-  lib/            armazenamento local e redação de segredos
+  cli.js          perfil, registros, trilha, diário, contexto dos skills
+  install.js      instalador para os outros harnesses
+  hooks/          scripts chamados pelos hooks de qualquer harness
+  lib/
+    store.js      armazenamento local e redação de segredos
+    payload.js    normaliza o JSON de hook de cada harness
+    portar.js     converte um skill para o padrão Agent Skills
+    harnesses.js  onde cada harness lê skills e como configurar os hooks dele
 data/<idioma>/    conteúdo da trilha
+docs/             planos de funcionalidades futuras
 tests/            testes com node:test
 ```
+
+### Adicionando um harness novo
+
+1. Uma entrada em `scripts/lib/harnesses.js`: pasta de skills e, se houver, a config de hooks. Calcule caminhos dentro de funções, nunca no carregamento do módulo.
+2. Se o JSON do hook dele tiver um formato novo, ensine `scripts/lib/payload.js` e adicione o payload de exemplo em `tests/payload.test.js`.
+3. Uma linha na tabela de instalação do README, com o link da documentação oficial no PR.
 
 ## Rodando localmente
 

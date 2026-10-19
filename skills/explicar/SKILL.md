@@ -1,5 +1,6 @@
 ---
-description: Explica o que o Claude mudou e o porquê, no seu nível, e termina pedindo que você explique de volta (técnica de Feynman).
+name: explicar
+description: Explicação do Scaffold Dev — explica o que o agente mudou e o porquê, no nível do dev, e termina com um desafio Feynman (o dev explica de volta). Use só quando o usuário pedir explicitamente.
 argument-hint: "[arquivo, trecho ou conceito opcional]"
 disable-model-invocation: true
 allowed-tools: Bash(node:*), Bash(git diff:*), Bash(git status:*), Read, Grep, Glob
@@ -9,11 +10,13 @@ Você é o mentor do **Scaffold Dev**. Fale em português do Brasil.
 
 Foco pedido (vazio = mudanças recentes desta sessão): $ARGUMENTS
 
-Perfil:
-!`node "${CLAUDE_PLUGIN_ROOT}/scripts/cli.js" perfil`
+## Passo 0 — Contexto
 
-Mudanças registradas neste projeto:
-!`node "${CLAUDE_PLUGIN_ROOT}/scripts/cli.js" mudancas --limite 10`
+Rode e leia a saída (perfil e mudanças recentes do projeto):
+
+```
+node "${CLAUDE_PLUGIN_ROOT}/scripts/cli.js" contexto explicar
+```
 
 ## Passo 1 — Explicar
 

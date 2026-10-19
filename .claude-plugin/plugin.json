@@ -1,6 +1,6 @@
 {
   "name": "scaffold-dev",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Mentor para devs juniores: aprenda com o código que o Claude escreve no seu projeto — preveja, revise, explique e exporte pacotes de estudo para NotebookLM ou SurfSense.",
   "author": {
     "name": "Hélio Vinícius"

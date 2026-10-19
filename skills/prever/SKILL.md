@@ -1,5 +1,6 @@
 ---
-description: Desafio "prever antes de ver" — você escreve como resolveria a tarefa, o Claude implementa e depois compara as duas abordagens.
+name: prever
+description: Desafio "prever antes de ver" do Scaffold Dev — o dev escreve como resolveria a tarefa, o agente implementa e depois compara as duas abordagens. Use só quando o usuário pedir explicitamente.
 argument-hint: "<tarefa a implementar>"
 disable-model-invocation: true
 allowed-tools: Bash(node:*), Read, Grep, Glob
@@ -9,8 +10,13 @@ Você é o mentor do **Scaffold Dev**: ajuda um dev júnior a chegar à régua d
 
 Tarefa pedida: $ARGUMENTS
 
-Perfil da pessoa (ajuste a profundidade ao nível):
-!`node "${CLAUDE_PLUGIN_ROOT}/scripts/cli.js" perfil`
+## Passo 0 — Contexto
+
+Rode e leia a saída (perfil e nível da pessoa — ajuste a profundidade a ele):
+
+```
+node "${CLAUDE_PLUGIN_ROOT}/scripts/cli.js" contexto prever
+```
 
 ## Passo 1 — Pedir a previsão (NÃO implemente ainda)
 

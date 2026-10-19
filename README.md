@@ -1,8 +1,8 @@
 # 🥋 Scaffold Dev
 
-**Aprenda com o código que o Claude escreve no seu projeto, em vez de só aceitar o que ele gera.**
+**Aprenda com o código que o agente escreve no seu projeto, em vez de só aceitar o que ele gera.**
 
-Plugin open source do [Claude Code](https://code.claude.com) para estagiários e devs juniores que querem chegar à régua de pleno usando o próprio trabalho do dia a dia como material de estudo.
+Plugin open source para agentes de código (Claude Code, Codex, Copilot, Cursor, Gemini CLI, Antigravity, Windsurf, Kiro, OpenCode, Amp, Cline, Goose e Roo) para estagiários e devs juniores que querem chegar à régua de pleno usando o próprio trabalho do dia a dia como material de estudo.
 
 ## Por quê
 
@@ -12,16 +12,18 @@ O Scaffold Dev transforma o tempo em que o agente trabalha em **prática ativa**
 
 ## O que ele faz
 
-| Comando | O que acontece |
+| Skill | O que acontece |
 |---|---|
-| `/scaffold-dev:prever <tarefa>` | Você escreve como resolveria (abordagem, arquivos, riscos, teste). O Claude implementa e compara as duas soluções, com nota. |
-| `/scaffold-dev:revisar` | Você faz code review do que o Claude mudou. O mentor mostra o que você encontrou, o que deixou passar e por que importa. |
-| `/scaffold-dev:explicar [foco]` | Explicação adaptada ao seu nível, seguida de um desafio Feynman: você explica de volta e recebe feedback. |
-| `/scaffold-dev:estudo [tema]` | Gera um **pacote de estudo em Markdown** para importar no **NotebookLM** ou no **SurfSense**: resumo em áudio, flashcards, quiz e mapa mental. |
-| `/scaffold-dev:progresso` | Radar da trilha júnior → pleno, diário de aprendizado e o próximo passo sugerido. |
-| `/scaffold-dev:config` | Define nível (`estagiario`, `junior`, `pleno`), stack e lembretes. |
+| **prever** `<tarefa>` | Você escreve como resolveria (abordagem, arquivos, riscos, teste). O agente implementa e compara as duas soluções, com nota. |
+| **revisar** | Você faz code review do que o agente mudou. O mentor mostra o que você encontrou, o que deixou passar e por que importa. |
+| **explicar** `[foco]` | Explicação adaptada ao seu nível, seguida de um desafio Feynman: você explica de volta e recebe feedback. |
+| **estudo** `[tema]` | Gera um **pacote de estudo em Markdown** para importar no **NotebookLM** ou no **SurfSense**: resumo em áudio, flashcards, quiz e mapa mental. |
+| **progresso** | Radar da trilha júnior → pleno, diário de aprendizado e o próximo passo sugerido. |
+| **config** | Define nível (`estagiario`, `junior`, `pleno`), stack e lembretes. |
 
-Quando o Claude termina de mexer em arquivos, o plugin sugere uma atividade de estudo (no máximo uma a cada 15 minutos; desligue com `/scaffold-dev:config lembretes off`).
+No Claude Code os skills se chamam `/scaffold-dev:prever`, `/scaffold-dev:revisar` etc. Nas outras ferramentas, `scaffold-dev-prever`, `scaffold-dev-revisar` etc. (veja a tabela de instalação para a sintaxe de cada uma).
+
+Nas ferramentas com hooks, o plugin registra quais arquivos o agente alterou e, quando ele termina, sugere uma atividade de estudo (no máximo uma a cada 15 minutos; desligue com o skill `config`: `lembretes off`). Sem hooks, o histórico vem do `git status`.
 
 ### Trilha júnior → pleno
 
@@ -33,48 +35,73 @@ Segurança                   ████░░░░░░  4.0  (2x)
 Banco de dados e SQL        ░░░░░░░░░░  —    (0x)
 ```
 
+O progresso fica num perfil único em `~/.scaffold-dev`, compartilhado por todas as ferramentas: estudou no Cursor de manhã e no Claude Code à tarde, conta tudo junto.
+
 ## Instalação
 
-Requisitos: Claude Code e Node.js 20+. Funciona em Windows, macOS e Linux, sem WSL, jq ou dependências npm.
+Requisitos: Node.js 20+. Funciona em Windows, macOS e Linux, sem WSL, jq ou dependências npm.
 
-No Claude Code:
+### Claude Code
 
 ```
 /plugin marketplace add Mystic0112/Scaffold-dev
 /plugin install scaffold-dev@scaffold-dev
 ```
 
-Depois, configure o seu nível:
+### Outras ferramentas
 
+```bash
+git clone https://github.com/Mystic0112/Scaffold-dev.git ~/scaffold-dev
+node ~/scaffold-dev/scripts/install.js todos
 ```
-/scaffold-dev:config nivel junior
-```
+
+O `todos` instala em todas as ferramentas detectadas na máquina. Para escolher, passe os nomes: `node scripts/install.js codex cursor`. Sem argumentos, ele lista o que foi detectado.
+
+| Ferramenta | `id` | Skills em | Como chamar | Registro de mudanças | Lembretes |
+|---|---|---|---|---|---|
+| Claude Code | `claude` | plugin nativo | `/scaffold-dev:revisar` | hooks | ✅ |
+| OpenAI Codex | `codex` | `~/.agents/skills` | `$scaffold-dev-revisar` | hooks¹ | ✅ |
+| GitHub Copilot (CLI e VS Code) | `copilot` | `~/.agents/skills` | `/scaffold-dev-revisar` | hooks | ✅ |
+| Gemini CLI | `gemini` | `~/.agents/skills` | peça "use o skill scaffold-dev-revisar" | hooks | ✅ |
+| Antigravity CLI | `antigravity` | `~/.gemini/antigravity-cli/skills` | peça pelo nome do skill | git status | — |
+| Cursor | `cursor` | `~/.agents/skills` | `/scaffold-dev-revisar` | hooks | —² |
+| Windsurf / Devin Desktop | `windsurf` | `~/.agents/skills` | `@scaffold-dev-revisar` | hooks | — |
+| Kiro | `kiro` | `~/.kiro/skills` | `/scaffold-dev-revisar` | hooks³ | — |
+| OpenCode | `opencode` | `~/.agents/skills` | peça pelo nome do skill | plugin JS | ✅ |
+| Amp | `amp` | `~/.agents/skills` | peça pelo nome do skill | plugin TS³ | ✅ |
+| Cline | `cline` | `~/.cline/skills` | `/scaffold-dev-revisar` | git status | — |
+| Goose | `goose` | `~/.agents/skills` | `/skills scaffold-dev-revisar` | git status | — |
+| Roo Code | `roo` | `~/.agents/skills` | automático | git status | — |
+
+¹ No Codex, aprove os hooks novos com `/hooks`. ² O Cursor não permite que hooks mostrem mensagens ao usuário. ³ Segue a documentação oficial, mas ainda não foi testado na ferramenta real. Se algo não funcionar, abra uma issue com o payload do hook.
+
+**Segurança do instalador:** ele nunca sobrescreve configurações suas. Faz merge, guarda um backup (`*.antes-scaffold-dev.bak`) antes da primeira alteração, marca as próprias entradas e recusa mexer em JSON inválido. Para remover tudo: `node scripts/install.js todos --desinstalar`. Se mover a pasta do Scaffold Dev, rode o instalador de novo.
 
 ## NotebookLM e SurfSense
 
-O `/scaffold-dev:estudo` gera um arquivo `.md` em `~/scaffold-dev-estudos/` com contexto, conceitos, trade-offs, perguntas de entrevista, flashcards e exercícios.
+O skill **estudo** gera um arquivo `.md` em `~/scaffold-dev-estudos/` com contexto, conceitos, trade-offs, perguntas de entrevista, flashcards e exercícios.
 
 - **[NotebookLM](https://notebooklm.google.com)** — gratuito com conta Google. Crie um notebook, adicione o `.md` como fonte e gere um resumo em áudio para ouvir enquanto o agente trabalha.
 - **[SurfSense](https://github.com/MODSetter/SurfSense)** — alternativa open source que roda **local**, sem conta e com o LLM que você escolher. Adicione a pasta inteira como fonte.
 
-> ⚠️ **Código da empresa:** o NotebookLM envia o conteúdo para o Google. Por padrão, o pacote é **anonimizado**: sem código do projeto, com exemplos genéricos equivalentes. Use `/scaffold-dev:estudo --local` para incluir trechos reais, de preferência só com o SurfSense, e siga a política da sua empresa.
+> ⚠️ **Código da empresa:** o NotebookLM envia o conteúdo para o Google. Por padrão, o pacote é **anonimizado**: sem código do projeto, com exemplos genéricos equivalentes. Peça o estudo com `--local` para incluir trechos reais, de preferência só com o SurfSense, e siga a política da sua empresa.
 
 ## Privacidade
 
-- Tudo fica na sua máquina, em `~/.claude/plugins/data/…` (ou `SCAFFOLD_DEV_HOME`). Sem telemetria.
+- Tudo fica na sua máquina, em `~/.scaffold-dev` (ou `SCAFFOLD_DEV_HOME`). Sem telemetria.
 - Os hooks gravam **apenas caminhos de arquivos** alterados e comandos **truncados e com segredos redigidos** (tokens, senhas, chaves). Nunca o conteúdo do código.
 - Os logs guardam as últimas 1000 entradas.
-- Para apagar tudo, remova a pasta de dados. Desinstalar o plugin também a remove.
+- Para apagar tudo, remova `~/.scaffold-dev`.
 
 | Variável | Padrão | Para quê |
 |---|---|---|
-| `SCAFFOLD_DEV_HOME` | `$CLAUDE_PLUGIN_DATA` ou `~/.scaffold-dev` | Onde ficam perfil e logs |
+| `SCAFFOLD_DEV_HOME` | `~/.scaffold-dev` | Onde ficam perfil e logs |
 | `SCAFFOLD_DEV_EXPORT_DIR` | `~/scaffold-dev-estudos` | Onde os pacotes de estudo são salvos |
 
 ## Roadmap
 
+- [ ] Painel visual de métricas de estudo — plano detalhado em [`docs/plano-painel.md`](docs/plano-painel.md)
 - [ ] Revisão espaçada: flashcards que voltam no dia certo
-- [ ] Painel visual de progresso
 - [ ] Integração direta com a API do SurfSense / NotebookLM Enterprise
 - [ ] Trilhas por stack (Laravel, Node/TS, Python…)
 - [ ] Inglês e espanhol (a estrutura `data/<idioma>/` já está pronta)
@@ -85,7 +112,7 @@ Contribuições são muito bem-vindas, principalmente de quem está começando. 
 
 ## Inspiração
 
-Inspirado no [code-sensei](https://github.com/DojoCodingLabs/code-sensei) (MIT), que ensina programação a quem constrói com IA. O Scaffold Dev foca em devs que já programam e querem subir de nível, com prática ativa, conteúdo em português e suporte nativo ao Windows.
+Inspirado no [code-sensei](https://github.com/DojoCodingLabs/code-sensei) (MIT), que ensina programação a quem constrói com IA. O Scaffold Dev foca em devs que já programam e querem subir de nível, com prática ativa, conteúdo em português e suporte a vários agentes e sistemas operacionais.
 
 ## Licença
 

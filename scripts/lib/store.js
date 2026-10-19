@@ -1,7 +1,8 @@
 'use strict';
 
 // Armazenamento local do Scaffold Dev. Nada sai da máquina.
-// Diretório: $SCAFFOLD_DEV_HOME > $CLAUDE_PLUGIN_DATA > ~/.scaffold-dev
+// Diretório: $SCAFFOLD_DEV_HOME > ~/.scaffold-dev — o mesmo para todos os harnesses,
+// para que o progresso no Claude Code, Codex, Cursor etc. fique num perfil só.
 
 const fs = require('fs');
 const os = require('os');
@@ -27,12 +28,24 @@ const PERFIL_PADRAO = {
 };
 
 function dataDir() {
-  const dir =
-    process.env.SCAFFOLD_DEV_HOME ||
-    process.env.CLAUDE_PLUGIN_DATA ||
-    path.join(os.homedir(), '.scaffold-dev');
+  const dir = process.env.SCAFFOLD_DEV_HOME || path.join(os.homedir(), '.scaffold-dev');
   fs.mkdirSync(dir, { recursive: true });
+  migrarDadosDoPlugin(dir);
   return dir;
+}
+
+// A v0.1.0 guardava os dados em $CLAUDE_PLUGIN_DATA. Copia uma vez para o diretório comum.
+function migrarDadosDoPlugin(dir) {
+  const antigo = process.env.CLAUDE_PLUGIN_DATA;
+  if (!antigo || process.env.SCAFFOLD_DEV_HOME || path.resolve(antigo) === path.resolve(dir)) return;
+  if (fs.existsSync(path.join(dir, 'perfil.json')) || !fs.existsSync(path.join(antigo, 'perfil.json'))) return;
+  for (const nome of ['perfil.json', 'diario.jsonl', 'mudancas.jsonl', 'comandos.jsonl']) {
+    try {
+      fs.copyFileSync(path.join(antigo, nome), path.join(dir, nome));
+    } catch {
+      // arquivo não existia na versão antiga
+    }
+  }
 }
 
 function exportDir() {

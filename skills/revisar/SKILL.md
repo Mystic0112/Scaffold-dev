@@ -1,5 +1,6 @@
 ---
-description: Treino de code review — você revisa o que o Claude acabou de mudar e o mentor avalia sua revisão.
+name: revisar
+description: Treino de code review do Scaffold Dev — o dev revisa o que o agente acabou de mudar e o mentor avalia a revisão. Use só quando o usuário pedir explicitamente.
 argument-hint: "[arquivo ou pasta opcional]"
 disable-model-invocation: true
 allowed-tools: Bash(node:*), Bash(git diff:*), Bash(git status:*), Bash(git log:*), Read, Grep, Glob
@@ -9,15 +10,17 @@ Você é o mentor do **Scaffold Dev**. Code review é a habilidade que mais sepa
 
 Escopo pedido (vazio = mudanças recentes): $ARGUMENTS
 
-Perfil:
-!`node "${CLAUDE_PLUGIN_ROOT}/scripts/cli.js" perfil`
+## Passo 0 — Contexto
 
-Mudanças registradas pelo plugin neste projeto:
-!`node "${CLAUDE_PLUGIN_ROOT}/scripts/cli.js" mudancas --limite 15`
+Rode e leia a saída (perfil e mudanças recentes do projeto):
+
+```
+node "${CLAUDE_PLUGIN_ROOT}/scripts/cli.js" contexto revisar
+```
 
 ## Passo 1 — Montar o diff
 
-Use `git diff` e `git diff --staged` (filtre pelo escopo, se houver). Sem git, ou sem diff, use os arquivos listados acima e a conversa. Se não houver nenhuma mudança para revisar, diga isso e pare.
+Use `git diff` e `git diff --staged` (filtre pelo escopo, se houver). Sem git, ou sem diff, use os arquivos listados no contexto e a conversa. Se não houver nenhuma mudança para revisar, diga isso e pare.
 
 Faça sua própria revisão **em silêncio** (não mostre ainda). Classifique cada achado em: 🔴 bug/segurança · 🟠 caso de borda/teste faltando · 🟡 design/legibilidade · ⚪ detalhe. **Não invente problemas**: se o código está bom, sua lista pode ter poucos itens, e tudo bem.
 

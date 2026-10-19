@@ -2,6 +2,7 @@
 'use strict';
 
 // CLI usada pelos skills do plugin (e por você, se quiser):
+//   node cli.js contexto [prever|revisar|explicar|estudo|progresso|config]
 //   node cli.js perfil
 //   node cli.js config <nivel|stack|lembretes|idioma> <valor>
 //   node cli.js mudancas [--limite 20] [--todas]
@@ -12,6 +13,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 const store = require('./lib/store');
 
 const TIPOS = ['previsao', 'revisao', 'explicacao'];
@@ -43,6 +45,22 @@ function normalizar(p) {
   // Git Bash/MSYS entrega "/c/Users/..." — converte para "C:/Users/..."
   const msys = String(p || '').replace(/^\/([a-zA-Z])(?=\/|$)/, '$1:');
   return path.resolve(msys).toLowerCase();
+}
+
+function statusGit(limite) {
+  try {
+    const saida = execFileSync('git', ['status', '--porcelain', '--untracked-files=all'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+      timeout: 5000,
+    });
+    const linhas = saida.split('\n').filter(Boolean);
+    if (!linhas.length) return '';
+    const resto = linhas.length > limite ? `\n- … e mais ${linhas.length - limite}` : '';
+    return linhas.slice(0, limite).map((l) => `- \`${l.slice(0, 2)}\` ${l.slice(3)}`).join('\n') + resto;
+  } catch {
+    return ''; // sem git ou fora de um repositório
+  }
 }
 
 function carregarTrilha(idioma) {
@@ -113,6 +131,7 @@ const comandos = {
     const aqui = normalizar(process.cwd());
     const doProjeto = (r) => flags.todas || (r.cwd && normalizar(r.cwd) === aqui);
 
+    // Fonte 1 (opcional): registros dos hooks, quando o harness tem hooks.
     const vistos = new Map();
     for (const m of store.lerLinhas('mudancas.jsonl').filter(doProjeto).reverse()) {
       if (!vistos.has(m.alvo)) vistos.set(m.alvo, m);
@@ -120,14 +139,35 @@ const comandos = {
     }
     const cmds = store.lerLinhas('comandos.jsonl').filter(doProjeto).slice(-10);
 
-    if (!vistos.size && !cmds.length) return 'Nenhuma mudança registrada neste projeto ainda.';
-    return [
-      '## Arquivos alterados recentemente (mais recente primeiro)',
-      ...[...vistos.values()].map((m) => `- ${m.alvo}  (${m.tipo}, ${m.ts})`),
-      '',
-      '## Últimos comandos',
-      ...(cmds.length ? cmds.map((c) => `- \`${c.comando}\``) : ['- nenhum']),
-    ].join('\n');
+    // Fonte 2 (universal): git status, funciona em qualquer harness.
+    const git = statusGit(limite);
+
+    if (!vistos.size && !cmds.length && !git) return 'Nenhuma mudança encontrada neste projeto.';
+    const partes = [];
+    if (git) partes.push('## Mudanças não commitadas (git status)', git, '');
+    if (vistos.size) {
+      partes.push(
+        '## Arquivos editados pelo agente (mais recente primeiro)',
+        ...[...vistos.values()].map((m) => `- ${m.alvo}  (${m.tipo}, ${m.ts})`),
+        '',
+      );
+    }
+    if (cmds.length) partes.push('## Últimos comandos', ...cmds.map((c) => `- \`${c.comando}\``));
+    return partes.join('\n').trim();
+  },
+
+  contexto({ pos }) {
+    // Tudo que um skill precisa, numa chamada só — funciona em qualquer harness.
+    const blocos = { perfil: comandos.perfil, mudancas: () => comandos.mudancas({ flags: { limite: 20 } }) };
+    const extras = {
+      estudo: { 'Pasta de exportação': comandos['export-dir'], Trilha: comandos.trilha },
+      progresso: { Trilha: comandos.trilha, 'Diário (mais recente primeiro)': () => comandos.diario({ flags: { limite: 15 } }) },
+    };
+    const skill = pos[0] || '';
+    const saida = [blocos.perfil()];
+    if (skill !== 'progresso' && skill !== 'config') saida.push(blocos.mudancas());
+    for (const [titulo, fn] of Object.entries(extras[skill] || {})) saida.push(`## ${titulo}\n${fn()}`);
+    return saida.join('\n\n');
   },
 
   registrar({ flags }) {

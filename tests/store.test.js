@@ -48,3 +48,30 @@ test('perfil novo tem padrões e persiste alterações', () => {
   store.gravarPerfil(p);
   assert.strictEqual(store.lerPerfil().nivel, 'pleno');
 });
+
+test('migra dados da v0.1.0 ($CLAUDE_PLUGIN_DATA) para ~/.scaffold-dev uma única vez', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const raiz = path.dirname(process.env.SCAFFOLD_DEV_HOME);
+  const antigo = path.join(raiz, 'plugin-data');
+  const casa = path.join(raiz, 'casa');
+  fs.mkdirSync(antigo);
+  fs.writeFileSync(path.join(antigo, 'perfil.json'), JSON.stringify({ nivel: 'pleno' }));
+  fs.writeFileSync(path.join(antigo, 'diario.jsonl'), '{"tipo":"revisao","nota":7}\n');
+
+  const env = { ...process.env };
+  try {
+    delete process.env.SCAFFOLD_DEV_HOME;
+    process.env.CLAUDE_PLUGIN_DATA = antigo;
+    process.env.HOME = casa;
+    process.env.USERPROFILE = casa;
+    assert.strictEqual(store.dataDir(), path.join(casa, '.scaffold-dev'));
+    assert.strictEqual(store.lerPerfil().nivel, 'pleno');
+    assert.strictEqual(store.lerLinhas('diario.jsonl').length, 1);
+
+    fs.writeFileSync(path.join(antigo, 'perfil.json'), JSON.stringify({ nivel: 'estagiario' }));
+    assert.strictEqual(store.lerPerfil().nivel, 'pleno', 'não sobrescreve depois da primeira vez');
+  } finally {
+    process.env = env;
+  }
+});

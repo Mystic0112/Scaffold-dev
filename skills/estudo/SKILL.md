@@ -1,5 +1,6 @@
 ---
-description: Gera um pacote de estudo em Markdown sobre o que foi feito no projeto, pronto para importar no NotebookLM ou no SurfSense (podcast, flashcards, quiz, mapa mental).
+name: estudo
+description: Pacote de estudo do Scaffold Dev — gera um Markdown sobre o que foi feito no projeto, pronto para importar no NotebookLM ou no SurfSense (podcast, flashcards, quiz, mapa mental). Use só quando o usuário pedir explicitamente.
 argument-hint: "[tema opcional] [--local para incluir trechos de código]"
 disable-model-invocation: true
 allowed-tools: Bash(node:*), Bash(git diff:*), Bash(git status:*), Bash(git log:*), Read, Grep, Glob, Write
@@ -9,17 +10,13 @@ Você é o mentor do **Scaffold Dev**. Fale em português do Brasil.
 
 Pedido: $ARGUMENTS
 
-Perfil:
-!`node "${CLAUDE_PLUGIN_ROOT}/scripts/cli.js" perfil`
+## Passo 0 — Contexto
 
-Mudanças registradas neste projeto:
-!`node "${CLAUDE_PLUGIN_ROOT}/scripts/cli.js" mudancas --limite 20`
+Rode e leia a saída (perfil, mudanças recentes, pasta de exportação e a trilha júnior → pleno para ligar o material às áreas):
 
-Pasta de exportação:
-!`node "${CLAUDE_PLUGIN_ROOT}/scripts/cli.js" export-dir`
-
-Trilha júnior → pleno (use para ligar o material às áreas):
-!`node "${CLAUDE_PLUGIN_ROOT}/scripts/cli.js" trilha`
+```
+node "${CLAUDE_PLUGIN_ROOT}/scripts/cli.js" contexto estudo
+```
 
 ## Privacidade (obrigatório)
 
@@ -30,7 +27,7 @@ O NotebookLM envia o conteúdo para os servidores do Google. Na maioria das empr
 
 ## Passo 1 — Levantar o conteúdo
 
-Use o tema pedido ou, se estiver vazio, o trabalho recente desta sessão (conversa, `git diff`, arquivos listados acima). Leia o código necessário para entender os conceitos de verdade.
+Use o tema pedido ou, se estiver vazio, o trabalho recente desta sessão (conversa, `git diff`, arquivos listados no contexto). Leia o código necessário para entender os conceitos de verdade.
 
 ## Passo 2 — Escrever o pacote
 

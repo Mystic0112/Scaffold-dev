@@ -2,6 +2,9 @@
 
 const test = require('node:test');
 const assert = require('node:assert');
+const fs = require('fs');
+const path = require('path');
+const { spawnSync } = require('child_process');
 const { dirTemporario } = require('./helpers');
 const store = require('../scripts/lib/store');
 const { main } = require('../scripts/cli');
@@ -50,6 +53,30 @@ test('mudancas reconhece cwd no formato do Git Bash no Windows', { skip: process
   const msys = process.cwd().replace(/^([A-Za-z]):\\/, (_, d) => `/${d.toLowerCase()}/`).replace(/\\/g, '/');
   store.anexarLinha('mudancas.jsonl', { ts: new Date().toISOString(), cwd: msys, tipo: 'edicao', alvo: 'c.js' });
   assert.ok(main(['mudancas']).saida.includes('c.js'));
+});
+
+test('mudancas usa git status quando não há hooks', () => {
+  const projeto = process.cwd();
+  const git = (...a) => spawnSync('git', a, { cwd: projeto, stdio: 'ignore' });
+  if (git('init', '-q').status !== 0) return; // sem git na máquina
+  fs.writeFileSync(path.join(projeto, 'novo.js'), 'x');
+  assert.match(main(['mudancas']).saida, /git status[\s\S]*novo\.js/);
+});
+
+test('mudancas fora de repositório e sem hooks avisa que não há nada', () => {
+  assert.match(main(['mudancas']).saida, /Nenhuma mudança/);
+});
+
+test('contexto junta os blocos que cada skill precisa', () => {
+  const revisar = main(['contexto', 'revisar']).saida;
+  assert.match(revisar, /Perfil Scaffold Dev/);
+  assert.match(revisar, /Nenhuma mudança/);
+  const estudo = main(['contexto', 'estudo']).saida;
+  assert.match(estudo, /Pasta de exportação/);
+  assert.match(estudo, /Trilha júnior → pleno/);
+  const progresso = main(['contexto', 'progresso']).saida;
+  assert.match(progresso, /Diário/);
+  assert.doesNotMatch(progresso, /Nenhuma mudança/);
 });
 
 test('trilha mostra todas as áreas e o radar', () => {
