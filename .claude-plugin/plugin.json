@@ -1,0 +1,12 @@
+{
+  "name": "scaffold-dev",
+  "version": "0.1.0",
+  "description": "Mentor para devs juniores: aprenda com o código que o Claude escreve no seu projeto — preveja, revise, explique e exporte pacotes de estudo para NotebookLM ou SurfSense.",
+  "author": {
+    "name": "Hélio Vinícius"
+  },
+  "homepage": "https://github.com/Mystic0112/Scaffold-dev",
+  "repository": "https://github.com/Mystic0112/Scaffold-dev",
+  "license": "MIT",
+  "keywords": ["aprendizado", "junior", "mentoria", "code-review", "notebooklm", "surfsense", "pt-br"]
+}

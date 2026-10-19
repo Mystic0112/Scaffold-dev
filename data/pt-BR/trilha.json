@@ -1,0 +1,72 @@
+{
+  "titulo": "Trilha júnior → pleno",
+  "descricao": "Áreas que separam quem escreve código que funciona de quem escreve código que se mantém em produção. Cada área lista o que se espera de um pleno.",
+  "areas": [
+    {
+      "id": "codigo-limpo",
+      "nome": "Código limpo e design",
+      "espera-se": "Nomes que revelam intenção, funções pequenas com uma responsabilidade, saber quando abstrair e quando NÃO abstrair.",
+      "conceitos": ["Responsabilidade única", "Acoplamento e coesão", "DRY vs duplicação aceitável", "Composição vs herança", "Injeção de dependência", "Code smells"]
+    },
+    {
+      "id": "testes",
+      "nome": "Testes",
+      "espera-se": "Escrever testes que pegam bugs reais, escolher o nível certo (unitário/integração/E2E) e testar casos de borda sem que alguém peça.",
+      "conceitos": ["Pirâmide de testes", "Casos de borda", "Mocks, stubs e fakes", "Testes de integração com banco", "TDD", "Testes frágeis"]
+    },
+    {
+      "id": "debugging",
+      "nome": "Debugging e investigação",
+      "espera-se": "Reproduzir o bug antes de corrigir, ler stack traces e logs, formular hipóteses e isolar a causa raiz em vez de remendar o sintoma.",
+      "conceitos": ["Reprodução mínima", "Leitura de stack trace", "Bisect", "Causa raiz vs sintoma", "Debugger e breakpoints"]
+    },
+    {
+      "id": "banco-de-dados",
+      "nome": "Banco de dados e SQL",
+      "espera-se": "Modelar tabelas, entender índices, perceber N+1, usar transações e escrever migrações seguras para produção.",
+      "conceitos": ["Índices", "Problema N+1", "Transações e isolamento", "Normalização", "Migrações sem downtime", "EXPLAIN / plano de execução"]
+    },
+    {
+      "id": "apis-http",
+      "nome": "APIs e HTTP",
+      "espera-se": "Projetar endpoints consistentes, usar status codes corretos, validar entrada, versionar e pensar em paginação e idempotência.",
+      "conceitos": ["Verbos e status HTTP", "Validação de entrada", "Paginação", "Idempotência", "Versionamento de API", "Autenticação vs autorização"]
+    },
+    {
+      "id": "seguranca",
+      "nome": "Segurança",
+      "espera-se": "Reconhecer as falhas mais comuns (OWASP Top 10) no próprio código e no code review, e nunca vazar segredos.",
+      "conceitos": ["SQL injection", "XSS", "CSRF", "Gestão de segredos", "Controle de acesso quebrado", "Hash de senhas"]
+    },
+    {
+      "id": "arquitetura",
+      "nome": "Arquitetura",
+      "espera-se": "Entender a arquitetura do sistema em que trabalha, explicar por que ela é assim e discutir trade-offs de mudanças.",
+      "conceitos": ["Camadas e separação de responsabilidades", "Monólito vs microsserviços", "Filas e mensageria", "Cache", "Trade-offs", "ADR (registro de decisão)"]
+    },
+    {
+      "id": "performance",
+      "nome": "Performance",
+      "espera-se": "Medir antes de otimizar, conhecer complexidade (Big O) na prática e identificar gargalos de I/O.",
+      "conceitos": ["Big O na prática", "Profiling", "Gargalos de I/O", "Cache e invalidação", "Lazy vs eager loading"]
+    },
+    {
+      "id": "assincrono",
+      "nome": "Concorrência e assíncrono",
+      "espera-se": "Entender async/await, race conditions e quando usar jobs em background.",
+      "conceitos": ["Event loop", "Race conditions", "Locks", "Jobs e filas em background", "Retries e backoff"]
+    },
+    {
+      "id": "producao",
+      "nome": "Produção e observabilidade",
+      "espera-se": "Escrever logs úteis, saber o que acontece depois do deploy e investigar incidentes.",
+      "conceitos": ["Logs estruturados", "Métricas e alertas", "Tracing", "Feature flags", "Rollback", "CI/CD"]
+    },
+    {
+      "id": "colaboracao",
+      "nome": "Git e colaboração",
+      "espera-se": "Commits e PRs pequenos e bem descritos, dar e receber code review e quebrar tarefas grandes.",
+      "conceitos": ["Commits atômicos", "Rebase vs merge", "Descrição de PR", "Code review construtivo", "Quebrar tarefas"]
+    }
+  ]
+}

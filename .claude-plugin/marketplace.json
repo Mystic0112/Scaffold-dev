@@ -1,0 +1,16 @@
+{
+  "name": "scaffold-dev",
+  "owner": {
+    "name": "Hélio Vinícius"
+  },
+  "metadata": {
+    "description": "Plugins de aprendizado para devs juniores."
+  },
+  "plugins": [
+    {
+      "name": "scaffold-dev",
+      "source": "./",
+      "description": "Mentor para devs juniores: aprenda com o código que o Claude escreve no seu projeto."
+    }
+  ]
+}

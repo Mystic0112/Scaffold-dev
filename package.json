@@ -1,0 +1,13 @@
+{
+  "name": "scaffold-dev",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plugin do Claude Code para devs juniores aprenderem com o código que o agente escreve.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test"
+  }
+}
